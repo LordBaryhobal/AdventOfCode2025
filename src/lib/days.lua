@@ -2,7 +2,7 @@ local json = require("json")
 local utils = require("utils")
 local days = {}
 
-local DAY_CACHE_PATH = "/.cache/days"
+local DAY_CACHE_PATH = CACHE_PATH .. "/days"
 
 local CHOICES = {
     create = "Create files",
@@ -26,7 +26,8 @@ return puzzle%d
 ---@field title string?
 ---@field puzzle1 boolean
 ---@field puzzle2 boolean
-local Day = {day = 0, title = nil, puzzle1 = false, puzzle2 = false}
+---@field results table
+local Day = {day = 0, title = nil, puzzle1 = false, puzzle2 = false, results={}}
 Day.__index = Day
 
 ---Creates a new Day object
@@ -40,7 +41,12 @@ function Day.new(dayI, puzzle1, puzzle2)
     day.day = dayI
     day.puzzle1 = puzzle1
     day.puzzle2 = puzzle2
+    day:loadResults()
     return day
+end
+
+function Day:cacheDir()
+    return DAY_CACHE_PATH .. ("/%02d"):format(self.day)
 end
 
 ---Returns the title of this day.
@@ -54,7 +60,7 @@ function Day:getTitle()
     if self.title then
         return self.title
     end
-    local cachePath = DAY_CACHE_PATH .. ("/%02d.txt"):format(self.day)
+    local cachePath = self:cacheDir() .. "/name.txt"
     if fs.exists(cachePath) then
         local cache = fs.open(cachePath, "r")
         if cache then
@@ -66,7 +72,7 @@ function Day:getTitle()
             end
         end
     end
-    fs.makeDir(DAY_CACHE_PATH)
+    fs.makeDir(self:cacheDir())
     local res = http.get("https://adventofcode.com/2024/day/" .. self.day)
     local title = "Day " .. self.day
     if res then
@@ -127,7 +133,21 @@ function Day:getInputData()
     return utils.readFile(self:inputPath())
 end
 
-function Day:execPuzzle(puzzleI, data)
+function Day:getResultKey(real, puzzle, suffix)
+    local key = ""
+    if real then
+        key = "input"
+    else
+        key = "example"
+        if suffix then
+            key = key .. "_" .. suffix
+        end
+    end
+    key = key .. "-" .. puzzle
+    return key
+end
+
+function Day:execPuzzle(puzzleI, data, resultKey)
     local path = self:srcDir() .. "/puzzle" .. puzzleI
     package.loaded[path] = nil
     local puzzle = require(path)
@@ -136,21 +156,32 @@ function Day:execPuzzle(puzzleI, data)
     local t1 = os.epoch("local")
     print(("(Executed in %.3fs)"):format((t1 - t0) / 1000))
     print("Result:", result)
+    self.results[resultKey] = result
+    self:saveResults()
 end
 
 function Day:execExample(puzzleI, suffix)
     local data = self:getExampleData(suffix)
-    return self:execPuzzle(puzzleI, data)
+    return self:execPuzzle(puzzleI, data, self:getResultKey(false, puzzleI, suffix))
 end
 
 function Day:execReal(puzzleI)
     local data = self:getInputData()
-    return self:execPuzzle(puzzleI, data)
+    return self:execPuzzle(puzzleI, data, self:getResultKey(true, puzzleI))
 end
 
-function Day:choosePuzzle()
+function Day:choosePuzzle(real)
     self:printTitle()
-    local c = utils.promptChoices({"Puzzle 1", "Puzzle 2", "Back"})
+    local choices = {
+        {"Puzzle 1", 1},
+        {"Puzzle 2", 2},
+        "Back"
+    }
+    local res1 = self.results[self:getResultKey(real, 1)]
+    local res2 = self.results[self:getResultKey(real, 2)]
+    if res1 then choices[1][1] = choices[1][1] .. (" - %s"):format(res1) end
+    if res2 then choices[2][1] = choices[2][1] .. (" - %s"):format(res2) end
+    local c = utils.promptChoices(choices)
     return c
 end
 
@@ -197,6 +228,26 @@ function Day:saveStats()
     utils.writeFile(path, content, true)
 end
 
+function Day:loadResults()
+    local path = self:cacheDir() .. "/results.json"
+    local results = {}
+    if fs.exists(path) then
+        local data = utils.readFile(path)
+        local r = json.loads(data)
+        if type(r) == "table" then
+            results = r
+        end
+    end
+    self.results = results
+end
+
+function Day:saveResults()
+    local data = json.dumps(self.results)
+    fs.makeDir(self:cacheDir())
+    local path = self:cacheDir() .. "/results.json"
+    utils.writeFile(path, data, true)
+end
+
 function Day:printTitle()
     term.clear()
     term.setCursorPos(1, 1)
@@ -216,16 +267,12 @@ function Day:show()
             elseif c == CHOICES.star then
                 self:menuStars()
             else
-                local puzzle = self:choosePuzzle()
+                local puzzle = self:choosePuzzle(c == CHOICES.real)
                 if puzzle ~= "Back" then
-                    local puzzleI = ({
-                        ["Puzzle 1"] = 1,
-                        ["Puzzle 2"] = 2
-                    })[puzzle]
                     if c == CHOICES.example then
-                        self:execExample(puzzleI)
+                        self:execExample(puzzle)
                     elseif c == CHOICES.real then
-                        self:execReal(puzzleI)
+                        self:execReal(puzzle)
                     end
                     utils.waitForKey(keys.enter)
                 end

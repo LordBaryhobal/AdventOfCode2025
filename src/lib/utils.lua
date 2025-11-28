@@ -11,7 +11,11 @@ function utils.promptChoices(choices, default)
             else
                 term.setTextColor(colors.lightGray)
             end
-            print(choice)
+            local label = choice
+            if type(choice) == "table" then
+                label = choice[1] or choice["label"]
+            end
+            print(label)
         end
         local event, key, is_held = os.pullEvent("key")
         if key == keys.up then
@@ -23,7 +27,11 @@ function utils.promptChoices(choices, default)
         end
     end
     term.setTextColor(colors.white)
-    return choices[c]
+    local choice = choices[c]
+    if type(choice) == "table" then
+        choice = choice[2] or choice["value"]
+    end
+    return choice
 end
 
 function utils.readFile(path)

@@ -1,5 +1,6 @@
 SRC_PATH = "/aoc/src"
 RES_PATH = "/aoc/res"
+CACHE_PATH = "/.cache/aoc"
 
 package.path = SRC_PATH .. "/lib/?.lua;" .. package.path
 
