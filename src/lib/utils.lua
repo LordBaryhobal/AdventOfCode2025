@@ -22,7 +22,37 @@ function utils.promptChoices(choices)
             break
         end
     end
+    term.setTextColor(colors.white)
     return choices[c]
+end
+
+function utils.readFile(path)
+    if not fs.exists(path) then
+        printError("File " .. path .. " not found")
+        return nil
+    end
+    local file = fs.open(path, "r")
+    if not file then
+        printError("Could not open file")
+        return nil
+    end
+    local data = file.readAll()
+    file.close()
+    return data
+end
+
+function utils.waitForKey(targetKey)
+    if targetKey then
+        print("Press " .. keys.getName(targetKey):upper() .. " to continue")
+    else
+        print("Press any key to continue")
+    end
+    while true do
+        local event, key, is_held = os.pullEvent("key")
+        if not targetKey or key == targetKey then
+            break
+        end
+    end
 end
 
 return utils

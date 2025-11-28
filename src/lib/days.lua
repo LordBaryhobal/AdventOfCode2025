@@ -118,24 +118,78 @@ function Day:createFiles()
     end
 end
 
----Displays this day and prompts the user with possible actions
-function Day:show()
+function Day:getExampleData(suffix)
+    return utils.readFile(self:examplePath(suffix))
+end
+
+function Day:getInputData()
+    return utils.readFile(self:inputPath())
+end
+
+function Day:execPuzzle(puzzleI, data)
+    local puzzle = require(self:srcDir() .. "/puzzle" .. puzzleI)
+    local t0 = os.epoch("local")
+    local result = puzzle.solve(data)
+    local t1 = os.epoch("local")
+    print(("(Executed in %.3fs)"):format((t1 - t0) / 1000))
+    print("Result:", result)
+end
+
+function Day:execExample(puzzleI, suffix)
+    local data = self:getExampleData(suffix)
+    return self:execPuzzle(puzzleI, data)
+end
+
+function Day:execReal(puzzleI)
+    local data = self:getInputData()
+    return self:execPuzzle(puzzleI, data)
+end
+
+function Day:choosePuzzle()
+    self:printTitle()
+    local c = utils.promptChoices({"Puzzle 1", "Puzzle 2", "Back"})
+    return c
+end
+
+function Day:printTitle()
     term.clear()
     term.setCursorPos(1, 1)
     term.setTextColor(colors.green)
     print(" -*- [ " .. self:getTitle() .. " ] -*-")
+    term.setTextColor(colors.white)
+end
 
-    if fs.exists(self:srcDir()) then
-        local c = utils.promptChoices({CHOICES.example, CHOICES.real, CHOICES.main})
-        if c == CHOICES.example then
-        end
-    else
-        local c = utils.promptChoices({CHOICES.create, CHOICES.main})
-        if c == CHOICES.create then
-            self:createFiles()
+---Displays this day and prompts the user with possible actions
+function Day:show()
+    while true do
+        self:printTitle()
+        if fs.exists(self:srcDir()) then
+            local c = utils.promptChoices({CHOICES.example, CHOICES.real, CHOICES.main})
+            if c == CHOICES.main then
+                return
+            end
+            local puzzle = self:choosePuzzle()
+            if puzzle ~= "Back" then
+                local puzzleI = ({
+                    ["Puzzle 1"] = 1,
+                    ["Puzzle 2"] = 2
+                })[puzzle]
+                if c == CHOICES.example then
+                    self:execExample(puzzleI)
+                elseif c == CHOICES.real then
+                    self:execReal(puzzleI)
+                end
+                utils.waitForKey(keys.enter)
+            end
+        else
+            local c = utils.promptChoices({CHOICES.create, CHOICES.main})
+            if c == CHOICES.main then
+                return
+            elseif c == CHOICES.create then
+                self:createFiles()
+            end
         end
     end
-    print("Puzzle 1")
 end
 
 days.Day = Day

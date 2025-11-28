@@ -102,6 +102,9 @@ end
 local function main()
     local stats = loadStats("aoc/res/stats.json")
     local selectedDay = math.max(1, math.min(END_DATE.day, today.day))
+    if not dates.isInDateRange(START_DATE, today, END_DATE) then
+        selectedDay = 1
+    end
     
     while true do
         term.clear()
