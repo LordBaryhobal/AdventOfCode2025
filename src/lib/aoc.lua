@@ -10,6 +10,7 @@ END_DATE = {day=12, month=12, year=2025}
 local json = require("json")
 local dates = require("dates")
 local days = require("days")
+local progress = require "progress"
 local today = os.date("*t")
 
 local function loadStats(path)
@@ -90,9 +91,13 @@ local function printStats(stats, selected)
     term.setTextColor(colors.white)
     write(string.format("You have %d", stars))
     term.setTextColor(colors.orange)
-    write("\x04")
+    write("\x04  ")
+    local x, y = term.getCursorPos()
+    progress.bar(x, y, 20, stars, 24, colors.orange, colors.gray)
     term.setTextColor(colors.white)
     print()
+    print()
+    print("Press END to quit")
 end
 
 local function printBanner()
