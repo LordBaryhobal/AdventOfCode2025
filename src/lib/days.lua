@@ -4,14 +4,6 @@ local days = {}
 
 local DAY_CACHE_PATH = CACHE_PATH .. "/days"
 
-local CHOICES = {
-    create = "Create files",
-    example = "Run examples",
-    real = "Run with real input",
-    star = "Mark solved",
-    main = "Back to main menu"
-}
-
 local PUZZLE_BASE = [[local puzzle%d = {}
 
 function puzzle%d.solve(input)
@@ -196,23 +188,21 @@ function Day:menuStars()
     while true do
         self:printTitle()
         local choices = {
-            puzzle1 = "Mark puzzle 1 as " .. solvedTxt(not self.puzzle1),
-            puzzle2 = "Mark puzzle 2 as " .. solvedTxt(not self.puzzle2),
-            back = "Back"
+            {"Mark puzzle 1 as " .. solvedTxt(not self.puzzle1), 1},
+            {"Mark puzzle 2 as " .. solvedTxt(not self.puzzle2), 2},
+            "Back"
         }
-        local c = utils.promptChoices({choices.puzzle1, choices.puzzle2, choices.back}, c0)
-        if c == choices.back then
+        local c = utils.promptChoices(choices, c0)
+        if c == "Back" then
             return
         end
-        if c == choices.puzzle1 then
+        c0 = c
+        if c == 1 then
             self.puzzle1 = not self.puzzle1
-            self:saveStats()
-            c0 = 1
-        elseif c == choices.puzzle2 then
+        elseif c == 2 then
             self.puzzle2 = not self.puzzle2
-            self:saveStats()
-            c0 = 2
         end
+        self:saveStats()
     end
 end
 
@@ -261,27 +251,35 @@ function Day:show()
     while true do
         self:printTitle()
         if fs.exists(self:srcDir()) then
-            local c = utils.promptChoices({CHOICES.example, CHOICES.real, CHOICES.star, CHOICES.main})
-            if c == CHOICES.main then
+            local c = utils.promptChoices({
+                {"Run examples", "examples"},
+                {"Run with real input", "inputs"},
+                {"Mark solved", "stars"},
+                {"Back to main menu", "main"}
+            })
+            if c == "main" then
                 return
-            elseif c == CHOICES.star then
+            elseif c == "stars" then
                 self:menuStars()
             else
-                local puzzle = self:choosePuzzle(c == CHOICES.real)
+                local puzzle = self:choosePuzzle(c == "inputs")
                 if puzzle ~= "Back" then
-                    if c == CHOICES.example then
+                    if c == "examples" then
                         self:execExample(puzzle)
-                    elseif c == CHOICES.real then
+                    elseif c == "inputs" then
                         self:execReal(puzzle)
                     end
                     utils.waitForKey(keys.enter)
                 end
             end
         else
-            local c = utils.promptChoices({CHOICES.create, CHOICES.main})
-            if c == CHOICES.main then
+            local c = utils.promptChoices({
+                {"Create files", "create"},
+                {"Back to main menu", "main"}
+            })
+            if c == "main" then
                 return
-            elseif c == CHOICES.create then
+            elseif c == "create" then
                 self:createFiles()
             end
         end
