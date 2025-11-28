@@ -10,6 +10,15 @@ local CHOICES = {
     main = "Back to main menu"
 }
 
+local PUZZLE_BASE = [[local puzzle%d = {}
+
+function puzzle%d.solve(input)
+    return 0
+end
+
+return puzzle%d
+]]
+
 ---@class Day
 ---@field day integer
 ---@field title string?
@@ -102,20 +111,10 @@ end
 function Day:createFiles()
     local srcDir = self:srcDir()
     fs.makeDir(srcDir)
-    local files = {
-        srcDir .. "/puzzle1.lua",
-        srcDir .. "/puzzle2.lua",
-        self:examplePath(),
-        self:inputPath()
-    }
-    for _, path in ipairs(files) do
-        local f = fs.open(path, "a")
-        if f then
-            f.close()
-        else
-            printError("Could not create file " .. path)
-        end
-    end
+    utils.writeFile(srcDir .. "/puzzle1.lua", PUZZLE_BASE:format(1, 1, 1))
+    utils.writeFile(srcDir .. "/puzzle2.lua", PUZZLE_BASE:format(2, 2, 2))
+    utils.writeFile(self:examplePath(), "")
+    utils.writeFile(self:inputPath(), "")
 end
 
 function Day:getExampleData(suffix)

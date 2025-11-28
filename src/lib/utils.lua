@@ -41,6 +41,21 @@ function utils.readFile(path)
     return data
 end
 
+function utils.writeFile(path, content, overwrite)
+    overwrite = overwrite or false
+    if not overwrite and fs.exists(path) then
+        return true
+    end
+    local f = fs.open(path, "w")
+    if not f then
+        printError("Could not open file " .. path)
+        return false
+    end
+    f.write(content)
+    f.close()
+    return true
+end
+
 function utils.waitForKey(targetKey)
     if targetKey then
         print("Press " .. keys.getName(targetKey):upper() .. " to continue")
