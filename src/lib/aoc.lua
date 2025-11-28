@@ -1,4 +1,5 @@
 SRC_PATH = "/aoc/src"
+RES_PATH = "/aoc/res"
 
 package.path = SRC_PATH .. "/lib/?.lua;" .. package.path
 
@@ -6,6 +7,8 @@ START_DATE = {day=1, month=12, year=2025}
 END_DATE = {day=12, month=12, year=2025}
 
 local json = require("json")
+local dates = require("dates")
+local days = require("days")
 local today = os.date("*t")
 
 local function loadStats(path)
@@ -24,52 +27,12 @@ local function loadStats(path)
     return data
 end
 
----Checks whether date2 is after date1
----@param date1 any
----@param date2 any
----@return boolean
-local function isAfter(date1, date2)
-    if date2.year < date1.year then
-        return false
-    elseif date2.year > date1.year then
-        return true
-    end
-    if date2.month < date1.month then
-        return false
-    elseif date2.month > date1.month then
-        return true
-    end
-    return date2.day > date1.day
-end
-
----Checks whether date2 is before date1
----@param date1 any
----@param date2 any
----@return boolean
-local function isBefore(date1, date2)
-    if date2.year > date1.year then
-        return false
-    elseif date2.year < date1.year then
-        return true
-    end
-    if date2.month > date1.month then
-        return false
-    elseif date2.month < date1.month then
-        return true
-    end
-    return date2.day < date1.day
-end
-
-local function isInDateRange(startDate, targetDate, endDate)
-    return not (isBefore(startDate, targetDate) or isAfter(endDate, targetDate))
-end
-
 local function printDateInfo()
-    if isBefore(START_DATE, today) then
+    if dates.isBefore(START_DATE, today) then
         print("AoC 2025 has not started yet")
         return
     end
-    if isAfter(END_DATE, today) then
+    if dates.isAfter(END_DATE, today) then
         print("AoC 2025 has ended")
         return
     end
@@ -77,8 +40,7 @@ local function printDateInfo()
     print("Day " .. day .. "/" .. END_DATE.day)
 end
 
-local function printStats()
-    local stats = loadStats("aoc/res/stats.json")
+local function printStats(stats, selected)
     local keys = {}
     for k in pairs(stats) do
         table.insert(keys, k)
@@ -91,7 +53,13 @@ local function printStats()
         local value = stats[key]
         local day = tonumber(key:sub(4))
         local date = {day=day, month=START_DATE.month, year=START_DATE.year}
-        if not isBefore(date, today) then
+        term.setTextColor(colors.lightBlue)
+        if selected == day then
+            write("- ")
+        else
+            write("  ")
+        end
+        if not dates.isBefore(date, today) then
             term.setTextColor(colors.white)
         else
             term.setTextColor(colors.gray)
@@ -123,15 +91,42 @@ local function printStats()
     print()
 end
 
-local function main()
+local function printBanner()
     term.setTextColor(colors.green)
-    textutils.slowPrint("+--------------------------------------+", 80)
-    textutils.slowPrint("|  Welcome to the Advent of Code 2025  |", 80)
-    textutils.slowPrint("+--------------------------------------+", 80)
+    print("+--------------------------------------+")
+    print("|  Welcome to the Advent of Code 2025  |")
+    print("+--------------------------------------+")
     term.setTextColor(colors.white)
+end
 
-    printDateInfo()
-    printStats()
+local function main()
+    local stats = loadStats("aoc/res/stats.json")
+    local selectedDay = math.max(1, math.min(END_DATE.day, today.day))
+    
+    while true do
+        term.clear()
+        term.setCursorPos(1, 1)
+        printBanner()
+        printDateInfo()
+        printStats(stats, selectedDay)
+
+        local event, key, is_held = os.pullEvent("key")
+        if key == keys.up then
+            selectedDay = math.max(1, selectedDay - 1)
+        elseif key == keys.down then
+            selectedDay = math.min(END_DATE.day, selectedDay + 1)
+        elseif key == keys["end"] then
+            break
+        elseif key == keys.enter then
+            local dayStats = stats[("day%02d"):format(selectedDay)]
+            local day = days.Day.new(
+                selectedDay,
+                dayStats.puzzle1,
+                dayStats.puzzle2
+            )
+            day:show()
+        end
+    end
 end
 
 main()
