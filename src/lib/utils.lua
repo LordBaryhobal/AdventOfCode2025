@@ -1,7 +1,7 @@
 local utils = {}
 
-function utils.promptChoices(choices)
-    local c = 1
+function utils.promptChoices(choices, default)
+    local c = default or 1
     local ox, oy = term.getCursorPos()
     while true do
         term.setCursorPos(ox, oy)

@@ -1,3 +1,4 @@
+local json = require("json")
 local utils = require("utils")
 local days = {}
 
@@ -7,6 +8,7 @@ local CHOICES = {
     create = "Create files",
     example = "Run examples",
     real = "Run with real input",
+    star = "Mark solved",
     main = "Back to main menu"
 }
 
@@ -150,6 +152,49 @@ function Day:choosePuzzle()
     return c
 end
 
+function Day:menuStars()
+    local solvedTxt = function (b)
+        if b then
+            return "solved"
+        end
+        return "unsolved"
+    end
+    local c0 = 1
+    while true do
+        self:printTitle()
+        local choices = {
+            puzzle1 = "Mark puzzle 1 as " .. solvedTxt(not self.puzzle1),
+            puzzle2 = "Mark puzzle 2 as " .. solvedTxt(not self.puzzle2),
+            back = "Back"
+        }
+        local c = utils.promptChoices({choices.puzzle1, choices.puzzle2, choices.back}, c0)
+        if c == choices.back then
+            return
+        end
+        if c == choices.puzzle1 then
+            self.puzzle1 = not self.puzzle1
+            self:saveStats()
+            c0 = 1
+        elseif c == choices.puzzle2 then
+            self.puzzle2 = not self.puzzle2
+            self:saveStats()
+            c0 = 2
+        end
+    end
+end
+
+function Day:saveStats()
+    local path = RES_PATH .. "/stats.json"
+    local content = utils.readFile(path) or "{}"
+    local data = json.loads(content) or {}
+    data[("day%02d"):format(self.day)] = {
+        puzzle1=self.puzzle1,
+        puzzle2=self.puzzle2,
+    }
+    content = json.dumps(data, 4, true)
+    utils.writeFile(path, content, true)
+end
+
 function Day:printTitle()
     term.clear()
     term.setCursorPos(1, 1)
@@ -163,22 +208,25 @@ function Day:show()
     while true do
         self:printTitle()
         if fs.exists(self:srcDir()) then
-            local c = utils.promptChoices({CHOICES.example, CHOICES.real, CHOICES.main})
+            local c = utils.promptChoices({CHOICES.example, CHOICES.real, CHOICES.star, CHOICES.main})
             if c == CHOICES.main then
                 return
-            end
-            local puzzle = self:choosePuzzle()
-            if puzzle ~= "Back" then
-                local puzzleI = ({
-                    ["Puzzle 1"] = 1,
-                    ["Puzzle 2"] = 2
-                })[puzzle]
-                if c == CHOICES.example then
-                    self:execExample(puzzleI)
-                elseif c == CHOICES.real then
-                    self:execReal(puzzleI)
+            elseif c == CHOICES.star then
+                self:menuStars()
+            else
+                local puzzle = self:choosePuzzle()
+                if puzzle ~= "Back" then
+                    local puzzleI = ({
+                        ["Puzzle 1"] = 1,
+                        ["Puzzle 2"] = 2
+                    })[puzzle]
+                    if c == CHOICES.example then
+                        self:execExample(puzzleI)
+                    elseif c == CHOICES.real then
+                        self:execReal(puzzleI)
+                    end
+                    utils.waitForKey(keys.enter)
                 end
-                utils.waitForKey(keys.enter)
             end
         else
             local c = utils.promptChoices({CHOICES.create, CHOICES.main})

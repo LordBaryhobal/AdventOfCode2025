@@ -128,6 +128,7 @@ local function main()
                 dayStats.puzzle2
             )
             day:show()
+            stats = loadStats("aoc/res/stats.json")
         end
     end
 end

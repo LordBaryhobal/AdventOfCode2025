@@ -20,6 +20,13 @@ local function errFactory(prefix)
     end
 end
 
+local function ifNil(test, ifNil, ifNotNil)
+    if test == nil then
+        return ifNil
+    end
+    return ifNotNil
+end
+
 local function parseObj(data)
     local printErr = errFactory("Error while parsing object")
     local obj = {}
@@ -196,6 +203,88 @@ function json.loads(data)
     if remaining:len() ~= 0 then
         print("Extra characters: " .. remaining)
     end
+    return res
+end
+
+local function kind(obj)
+    if type(obj) ~= "table" then
+        return type(obj)
+    end
+    local i = 1
+    for _ in pairs(obj) do
+        if obj[i] ~= nil then
+            i = i + 1
+        else
+            return "table"
+        end
+    end
+    if i == 1 then
+        return "table"
+    end
+    return "array"
+end
+
+local function escapeStr(str)
+    local in_char  = {'\\', '"', '/', '\b', '\f', '\n', '\r', '\t'}
+    local out_char = {'\\', '"', '/',  'b',  'f',  'n',  'r',  't'}
+    for i, c in ipairs(in_char) do
+        str = str:gsub(c, '\\' .. out_char[i])
+    end
+    return str
+end
+
+function json.dumps(data, indent, sortKeys, depth)
+    if data == json.null then
+        return "null"
+    end
+
+    local t = kind(data)
+    if t == "string" then
+        return '"' .. escapeStr(data) .. '"'
+    elseif t == "number" or t == "boolean" then
+        return tostring(data)
+    end
+
+    depth = depth or 0
+    local spaces = ""
+    if indent ~= nil then
+        spaces = string.rep(" ", indent * depth)
+    end
+    local res = ""
+
+    if t == "array" then
+        res = res .. "[" .. ifNil(indent, "", "\n")
+        for i, val in ipairs(data) do
+            if i > 1 then
+                res = res .. "," .. ifNil(indent, " ", "\n")
+            end
+            res = res .. spaces .. string.rep(" ", indent or 0)
+            res = res .. json.dumps(val, indent, sortKeys, depth + 1)
+        end
+        res = res .. ifNil(indent, "", "\n") .. spaces .. "]"
+    elseif t == "table" then
+        res = res .. "{" .. ifNil(indent, "", "\n")
+        local first = true
+        local keys = {}
+        for k, _ in pairs(data) do
+            table.insert(keys, k)
+        end
+        if sortKeys then
+            table.sort(keys)
+        end
+        for _, k in ipairs(keys) do
+            local v = data[k]
+            if not first then
+                res = res .. "," .. ifNil(indent, " ", "\n")
+            end
+            first = false
+            res = res .. spaces .. string.rep(" ", indent or 0)
+            res = res .. '"' .. escapeStr(k) .. '": '
+            res = res .. json.dumps(v, indent, sortKeys, depth + 1)
+        end
+        res = res .. ifNil(indent, "", "\n") .. spaces .. "}"
+    end
+
     return res
 end
 
