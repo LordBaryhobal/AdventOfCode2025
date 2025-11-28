@@ -70,4 +70,12 @@ function utils.waitForKey(targetKey)
     end
 end
 
+function utils.splitLines(data)
+    local t = {}
+    for str in string.gmatch(data, "([^\n]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
+
 return utils

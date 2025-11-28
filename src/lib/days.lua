@@ -128,7 +128,9 @@ function Day:getInputData()
 end
 
 function Day:execPuzzle(puzzleI, data)
-    local puzzle = require(self:srcDir() .. "/puzzle" .. puzzleI)
+    local path = self:srcDir() .. "/puzzle" .. puzzleI
+    package.loaded[path] = nil
+    local puzzle = require(path)
     local t0 = os.epoch("local")
     local result = puzzle.solve(data)
     local t1 = os.epoch("local")

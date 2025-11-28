@@ -100,7 +100,7 @@ local function printBanner()
 end
 
 local function main()
-    local stats = loadStats("aoc/res/stats.json")
+    local stats = loadStats("aoc/res/stats.json") or {}
     local selectedDay = math.max(1, math.min(END_DATE.day, today.day))
     if not dates.isInDateRange(START_DATE, today, END_DATE) then
         selectedDay = 1
@@ -128,7 +128,7 @@ local function main()
                 dayStats.puzzle2
             )
             day:show()
-            stats = loadStats("aoc/res/stats.json")
+            stats = loadStats("aoc/res/stats.json") or {}
         end
     end
 end
