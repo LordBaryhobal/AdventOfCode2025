@@ -56,33 +56,36 @@ local function printStats(stats, selected)
         local date = {day=day, month=START_DATE.month, year=START_DATE.year}
         term.setTextColor(colors.lightBlue)
         if selected == day then
+            term.setBackgroundColor(colors.gray)
             write("- ")
         else
+            term.setBackgroundColor(colors.black)
             write("  ")
         end
         if not dates.isBefore(date, today) then
             term.setTextColor(colors.white)
         else
-            term.setTextColor(colors.gray)
+            term.setTextColor(colors.lightGray)
         end
         write(string.format("Day %2s ", day))
         if value.puzzle1 then
             term.setTextColor(colors.orange)
             stars = stars + 1
         else
-            term.setTextColor(colors.gray)
+            term.setTextColor(colors.lightGray)
         end
         write("\x04")
         if value.puzzle2 then
             term.setTextColor(colors.orange)
             stars = stars + 1
         else
-            term.setTextColor(colors.gray)
+            term.setTextColor(colors.lightGray)
         end
         write("\x04")
         term.setTextColor(colors.white)
-        print()
+        print(" ")
     end
+    term.setBackgroundColor(colors.black)
 
     term.setTextColor(colors.white)
     write(string.format("You have %d", stars))
