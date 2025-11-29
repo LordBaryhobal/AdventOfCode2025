@@ -11,24 +11,14 @@ END_DATE = {day=12, month=12, year=2025}
 local json = require("json")
 local dates = require("dates")
 local days = require("days")
+local utils = require("utils")
 local progress = require "progress"
 local today = os.date("*t")
 local aoc = {}
 
-function aoc.loadStats(path)
-    path = shell.resolve(path)
-    if not fs.exists(path) then
-        printError("Stats file not found (" .. path .. ")")
-        return
-    end
-    local file, err = fs.open(path, "r")
-    if not file then
-        printError("Cannot open stats file")
-        return
-    end
-    local data = json.loads(file.readAll())
-    file.close()
-    return data
+function aoc.loadStats()
+    local data = utils.readFile(RES_PATH .. "/stats.json") or "{}"
+    return json.loads(data)
 end
 
 function aoc.printDateInfo()
@@ -111,7 +101,7 @@ function aoc.printBanner()
 end
 
 function aoc.main()
-    local stats = aoc.loadStats("aoc/res/stats.json") or {}
+    local stats = aoc.loadStats() or {}
     local selectedDay = math.max(1, math.min(END_DATE.day, today.day))
     if not dates.isInDateRange(START_DATE, today, END_DATE) then
         selectedDay = 1
@@ -139,7 +129,7 @@ function aoc.main()
                 dayStats.puzzle2
             )
             day:show()
-            stats = aoc.loadStats("aoc/res/stats.json") or {}
+            stats = aoc.loadStats() or {}
         end
     end
 end

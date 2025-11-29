@@ -65,7 +65,7 @@ function Day:getTitle()
         end
     end
     fs.makeDir(self:cacheDir())
-    local res = http.get("https://adventofcode.com/2024/day/" .. self.day)
+    local res = http.get("https://adventofcode.com/2025/day/" .. self.day)
     local title = "Day " .. self.day
     if res then
         local body = res.readAll() or ""

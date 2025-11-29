@@ -19,6 +19,7 @@ local function insertInReadme()
 end
 
 local totalStars = 0
+---@diagnostic disable-next-line: param-type-mismatch
 for _, s in pairs(stats) do
     if s.puzzle1 then totalStars = totalStars + 1 end
     if s.puzzle2 then totalStars = totalStars + 1 end
