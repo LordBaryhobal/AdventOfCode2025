@@ -1,5 +1,6 @@
-SRC_PATH = "/aoc/src"
-RES_PATH = "/aoc/res"
+ROOT_PATH = "/aoc"
+SRC_PATH = ROOT_PATH .. "/src"
+RES_PATH = ROOT_PATH .. "/res"
 CACHE_PATH = "/.cache/aoc"
 
 package.path = SRC_PATH .. "/lib/?.lua;" .. package.path
@@ -12,8 +13,9 @@ local dates = require("dates")
 local days = require("days")
 local progress = require "progress"
 local today = os.date("*t")
+local aoc = {}
 
-local function loadStats(path)
+function aoc.loadStats(path)
     path = shell.resolve(path)
     if not fs.exists(path) then
         printError("Stats file not found (" .. path .. ")")
@@ -29,7 +31,7 @@ local function loadStats(path)
     return data
 end
 
-local function printDateInfo()
+function aoc.printDateInfo()
     if dates.isBefore(START_DATE, today) then
         print("AoC 2025 has not started yet")
         return
@@ -42,7 +44,7 @@ local function printDateInfo()
     print("Day " .. day .. "/" .. END_DATE.day)
 end
 
-local function printStats(stats, selected)
+function aoc.printStats(stats, selected)
     local keys = {}
     for k in pairs(stats) do
         table.insert(keys, k)
@@ -100,7 +102,7 @@ local function printStats(stats, selected)
     print("Press END to quit")
 end
 
-local function printBanner()
+function aoc.printBanner()
     term.setTextColor(colors.green)
     print("+--------------------------------------+")
     print("|  Welcome to the Advent of Code 2025  |")
@@ -108,8 +110,8 @@ local function printBanner()
     term.setTextColor(colors.white)
 end
 
-local function main()
-    local stats = loadStats("aoc/res/stats.json") or {}
+function aoc.main()
+    local stats = aoc.loadStats("aoc/res/stats.json") or {}
     local selectedDay = math.max(1, math.min(END_DATE.day, today.day))
     if not dates.isInDateRange(START_DATE, today, END_DATE) then
         selectedDay = 1
@@ -118,9 +120,9 @@ local function main()
     while true do
         term.clear()
         term.setCursorPos(1, 1)
-        printBanner()
-        printDateInfo()
-        printStats(stats, selectedDay)
+        aoc.printBanner()
+        aoc.printDateInfo()
+        aoc.printStats(stats, selectedDay)
 
         local event, key, is_held = os.pullEvent("key")
         if key == keys.up then
@@ -137,9 +139,9 @@ local function main()
                 dayStats.puzzle2
             )
             day:show()
-            stats = loadStats("aoc/res/stats.json") or {}
+            stats = aoc.loadStats("aoc/res/stats.json") or {}
         end
     end
 end
 
-main()
+return aoc
