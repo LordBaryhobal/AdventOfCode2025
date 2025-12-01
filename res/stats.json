@@ -1,7 +1,7 @@
 {
     "day01": {
         "puzzle1": true,
-        "puzzle2": false
+        "puzzle2": true
     },
     "day02": {
         "puzzle1": false,
