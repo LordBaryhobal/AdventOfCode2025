@@ -78,12 +78,16 @@ function utils.waitForKey(targetKey)
     end
 end
 
-function utils.splitLines(data)
+function utils.split(data, sep)
     local t = {}
-    for str in string.gmatch(data, "([^\n]+)") do
+    for str in string.gmatch(data, "([^" .. sep .. "]+)") do
         table.insert(t, str)
     end
     return t
+end
+
+function utils.splitLines(data)
+    return utils.split(data, "\n")
 end
 
 function utils.round(x)
