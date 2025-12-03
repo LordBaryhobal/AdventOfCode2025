@@ -147,7 +147,7 @@ function Day:execPuzzle(puzzleI, data, resultKey)
     local result = puzzle.solve(data)
     local t1 = os.epoch("local")
     print(("(Executed in %.3fs)"):format((t1 - t0) / 1000))
-    print("Result:", result)
+    print(("Result: %.0f"):format(result))
     self.results[resultKey] = result
     self:saveResults()
 end
