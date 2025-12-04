@@ -13,7 +13,7 @@
     },
     "day04": {
         "puzzle1": true,
-        "puzzle2": false
+        "puzzle2": true
     },
     "day05": {
         "puzzle1": false,
