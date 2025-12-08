@@ -28,7 +28,7 @@
         "puzzle2": true
     },
     "day08": {
-        "puzzle1": false,
+        "puzzle1": true,
         "puzzle2": false
     },
     "day09": {
